@@ -22,7 +22,8 @@ db = firestore.Client(
 
 # Função para obter os dados dos usuários da coleção
 def get_users():
-    users = users_collection.order_by('updatedAt', direction=firestore.Query.DESCENDING).stream()
+    # users = db.collection('users').order_by('updatedAt', direction=firestore.Query.DESCENDING).stream()
+    users = db.collection('users').stream()
     user_data = []
     for user in users:
         data = user.to_dict()
@@ -39,11 +40,11 @@ def get_users():
 
 # Função para buscar usuários por telefone ou profileName
 def search_users(query):
-    users_ref = users_collection.where('phone', '==', query).stream()
+    users_ref = db.collection('users').where('phone', '==', query).stream()
     user_data = [user.to_dict() for user in users_ref]
 
     if not user_data:  # Se não encontrar por telefone, buscar por profileName
-        users_ref = users_collection.where('profileName', '==', query).stream()
+        users_ref = db.collection('users').where('profileName', '==', query).stream()
         user_data = [user.to_dict() for user in users_ref]
 
     return user_data
@@ -69,7 +70,7 @@ def get_weekly_data():
     messages_data = []
 
     # Obtendo usuários na última semana
-    users_query = users_collection.where('updatedAt', '>=', one_week_ago_datetime)
+    users_query = db.collection('users').where('updatedAt', '>=', one_week_ago_datetime)
     users_data = [user.to_dict() for user in users_query.stream()]
 
     # Obtendo mensagens na última semana
@@ -164,10 +165,17 @@ def show_dashboard():
     col3, col4 = st.columns([2, 3])
 
     with col3:
+        filtered_users = user_data
+        search_query = st.text_input("Pesquisar usuário por nome ou telefone:")
+
+        # Passo 2: Filtrar os dados do usuário com base na pesquisa
+        if search_query:
+            filtered_users = [user for user in user_data if search_query.lower() in user.get('profileName', '').lower() or search_query in user.get('phone', '')]
+
         st.header("Últimos Usuários Registrados")
         page_size = 10
         page_number = st.number_input("Página", min_value=0, max_value=(total_users // page_size), step=1)
-        paginated_users = paginate_data(user_data, page_size, page_number)
+        paginated_users = paginate_data(filtered_users, page_size, page_number)
 
         for user in paginated_users:
             profile_name = user.get('profileName')
@@ -192,5 +200,4 @@ def show_dashboard():
             st.write("Selecione um usuário para ver a conversa.")
 
 if __name__ == "__main__":
-    users_collection = db.collection('users')
     show_dashboard()
