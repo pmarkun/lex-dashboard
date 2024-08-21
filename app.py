@@ -3,20 +3,19 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 import os
 
-# Carregar variáveis de ambiente do arquivo .env
-load_dotenv()
 
 # Configurações do Firestore
-project_id = os.getenv("FIRESTORE_PROJECT_ID")
-credentials_path = os.getenv("FIRESTORE_CREDENTIALS_PATH")
-database = os.getenv("FIRESTORE_DATABASE")
+project_id = st.secrets["FIRESTORE_PROJECT_ID"]
+credentials_info = st.secrets["FIRESTORE_CREDENTIALS"]
+database = st.secrets["FIRESTORE_DATABASE"]
+login_password = st.secrets["LOGIN_PASSWORD"]
+
 # Autenticando e inicializando o cliente do Firestore
 db = firestore.Client(
     project=project_id,
-    credentials=firestore.Client.from_service_account_json(credentials_path)._credentials,
+    credentials=firestore.Client.from_service_account_info(credentials_info)._credentials,
     database=database
 )
 
@@ -30,7 +29,10 @@ def get_users():
         data['id'] = user.id
         # Verifica se o usuário tem updatedAt; se não tiver, define como uma data muito antiga
         if 'updatedAt' not in data:
-            data['updatedAt'] = datetime(1900, 1, 1)  # Data antiga para ordenar no final
+            if 'lastMessageTime' in data:
+                data['updatedAt'] = data['lastMessageTime']
+            else:
+                data['updatedAt'] = datetime(1900, 1, 1)  # Data antiga para ordenar no final
         user_data.append(data)
 
     # Ordena os usuários colocando os sem updatedAt no final
@@ -191,6 +193,21 @@ def show_dashboard():
         else:
             st.write("Selecione um usuário para ver a conversa.")
 
+def show_login():
+    st.title("Login")
+    password = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        if password == login_password:
+            st.session_state.logged_in = True
+        else:
+            st.error("Senha incorreta. Tente novamente.")
+
 if __name__ == "__main__":
     users_collection = db.collection('users')
-    show_dashboard()
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        show_login()
+    else:
+        show_dashboard()
