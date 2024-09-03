@@ -1,0 +1,32 @@
+credentials:
+  usernames:
+    admin_user:
+      email: admin@example.com
+      failed_login_attempts: 0
+      logged_in: False
+      name: Admin User
+      password: senha123 # Será automaticamente hash
+      role: admin
+    editor_user:
+      email: editor@example.com
+      failed_login_attempts: 0
+      logged_in: False
+      name: Editor User
+      password: senha456 # Será automaticamente hash
+      role: editor
+    viewer_user:
+      email: viewer@example.com
+      failed_login_attempts: 0
+      logged_in: False
+      name: Viewer User
+      password: senha789 # Será automaticamente hash
+      role: viewer
+
+cookie:
+  expiry_days: 30
+  key: some_signature_key
+  name: lexdashboardcookie
+
+pre-authorized:
+  emails:
+    - newuser@example.com
