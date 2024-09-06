@@ -2,7 +2,7 @@ import streamlit as st
 import altair as alt
 import pandas as pd
 from datetime import datetime, timedelta
-from firebase_utils import get_users, get_total_messages, get_weekly_data, create_whatsapp_link
+from firebase_utils import get_users, get_total_messages, get_weekly_data, create_whatsapp_link, get_user_conversation
 from utils import check_permission
 
 # Função para paginar os usuários
@@ -24,13 +24,11 @@ def show_user_conversation(user):
         st.write("Nenhuma conversa disponível para este usuário.")
         return
 
-    messages_collection = db.collection('sessions').document(thread_id).collection('messages')
-    messages = messages_collection.order_by('createdAt').stream()
-
+    messages = get_user_conversation(user)
+    
     for message in messages:
-        message_data = message.to_dict()
-        role = message_data.get('role')
-        content = message_data.get('content')
+        role = message.get('role')
+        content = message.get('content')
 
         if role == 'ai':
             st.markdown(f"<div style='background-color: #e0f7fa; padding: 10px; border-radius: 5px;'>{content}</div>", unsafe_allow_html=True)

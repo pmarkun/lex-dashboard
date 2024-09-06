@@ -82,3 +82,28 @@ def get_active_users_last_48_hours():
     users_ref = users_collection.where('lastMessageTime', '>=', two_days_ago).stream()
     active_users = [user.to_dict() for user in users_ref]
     return active_users
+
+
+def get_user_conversation(user):
+    thread_id = user.get('threadId')
+    messages_collection = db.collection('sessions').document(thread_id).collection('messages')
+    messages_collection = messages_collection.order_by('createdAt').stream()
+    messages = [message.to_dict() for message in messages_collection]
+    return messages
+
+# Função para adicionar uma mensagem no log
+def log_message(phone, message):
+    try:
+        # Referência para a subcoleção 'messages' dentro do documento 'session_id'
+        messages_ref = db.collection('sessions').document(threadId).collection('messages').document()
+
+        # Adiciona a mensagem com o campo 'createdAt' como a timestamp do servidor
+        messages_ref.set({
+            **message,
+            'createdAt': firestore.SERVER_TIMESTAMP
+        })
+        print(f"Mensagem adicionada com sucesso à sessão {threadId}")
+    
+    except Exception as e:
+        print(f"Erro ao adicionar mensagem ao Firestore: {e}")
+        raise e  # Lança a exceção novamente para que o erro seja detectado no nível superior

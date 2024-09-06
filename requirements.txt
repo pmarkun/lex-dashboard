@@ -1,4 +1,5 @@
 streamlit
+streamlit-authenticator
 google-cloud-firestore
 python-dotenv
 pandas

@@ -1,5 +1,5 @@
 import streamlit as st
-from firebase_utils import get_active_users_last_48_hours
+from firebase_utils import get_active_users_last_48_hours, log_message
 from twilio_utils import send_message_via_twilio
 from utils import check_permission
 
